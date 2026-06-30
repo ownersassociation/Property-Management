@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      Role     @default(pending)
+  status    Status   @default(active)
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+
+  ownedUnits    Unit[]        @relation("UnitOwner")
+  residentUnits Unit[]        @relation("UnitResident")
+  notices       Notice[]      @relation("NoticeAuthor")
+  ledgerEntries LedgerEntry[] @relation("LedgerAuthor")
+  payments      Payment[]     @relation("PaymentRecorder")
+  projects      Project[]     @relation("ProjectCreator")
+  schedules     Schedule[]    @relation("ScheduleCreator")
+  documents     Document[]    @relation("DocumentUploader")
+  auditLogs     AuditLog[]    @relation("AuditActor")
+
+  @@map("users")
+}
+
+model Unit {
+  id          String @id @default(uuid())
+  unitNumber  String
+  building    String @default("Main")
+  floor       String?
+  ownerId     String?
+  residentId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User?     @relation("UnitOwner", fields: [ownerId], references: [id])
+  resident    User?     @relation("UnitResident", fields: [residentId], references: [id])
+  payments    Payment[]
+  documents   Document[]
+
+  @@unique([unitNumber, building])
+  @@map("units")
+}
+
+model Notice {
+  id          String   @id @default(uuid())
+  title       String
+  body        String   @db.Text
+  category    NoticeCategory @default(general)
+  attachmentUrl String?
+  validFrom   DateTime @default(now())
+  validUntil  DateTime?
+  isUrgent    Boolean  @default(false)
+  readBy      String[] @default([])
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author      User     @relation("NoticeAuthor", fields: [createdBy], references: [id])
+
+  @@map("notices")
+}
+
+model LedgerEntry {
+  id            String   @id @default(uuid())
+  date          DateTime
+  billRefNo     String   @unique
+  category      String
+  vendor        String
+  description   String   @db.Text
+  amount        Decimal  @db.Decimal(12, 2)
+  paymentMode   String   @default("Bank Transfer")
+  receiptUrl    String?
+  receiptPublicId String?
+  notes         String?  @db.Text
+  createdBy     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  author        User     @relation("LedgerAuthor", fields: [createdBy], references: [id])
+
+  @@index([date])
+  @@index([category])
+  @@index([billRefNo])
+  @@map("ledger_entries")
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  unitId      String
+  description String
+  amount      Decimal  @db.Decimal(12, 2)
+  paidAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  balance     Decimal  @db.Decimal(12, 2)
+  dueDate     DateTime
+  paidDate    DateTime?
+  status      PaymentStatus @default(due)
+  receiptUrl  String?
+  receiptPublicId String?
+  notes       String?  @db.Text
+  recordedBy  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  recorder    User     @relation("PaymentRecorder", fields: [recordedBy], references: [id])
+
+  @@index([unitId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("payments")
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  title       String
+  description String        @db.Text
+  status      ProjectStatus @default(planned)
+  startDate   DateTime?
+  targetDate  DateTime?
+  budget      Decimal?      @db.Decimal(12, 2)
+  actualCost  Decimal?      @default(0) @db.Decimal(12, 2)
+  photos      String[]      @default([])
+  documents   String[]      @default([])
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  creator     User          @relation("ProjectCreator", fields: [createdBy], references: [id])
+
+  @@map("projects")
+}
+
+model Schedule {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  category    ScheduleCategory @default(maintenance)
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean  @default(false)
+  location    String?
+  reminderSent Boolean @default(false)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator     User     @relation("ScheduleCreator", fields: [createdBy], references: [id])
+
+  @@index([startDate])
+  @@map("schedules")
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  unitId      String
+  title       String
+  fileUrl     String
+  filePublicId String
+  fileType    String
+  fileSize    Int?
+  category    DocCategory @default(other)
+  uploadedBy  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  uploader    User     @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+
+  @@index([unitId])
+  @@map("documents")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String?
+  details   String   @db.Text
+  userId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation("AuditActor", fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum Role {
+  admin
+  accountant
+  owner
+  resident
+  pending
+}
+
+enum Status {
+  active
+  inactive
+  suspended
+}
+
+enum NoticeCategory {
+  general
+  maintenance
+  billing
+  event
+  emergency
+  security
+}
+
+enum PaymentStatus {
+  due
+  paid
+  overdue
+  partial
+  waived
+}
+
+enum ProjectStatus {
+  planned
+  in_progress
+  completed
+  on_hold
+  cancelled
+}
+
+enum ScheduleCategory {
+  maintenance
+  inspection
+  event
+  meeting
+  amc
+  other
+}
+
+enum DocCategory {
+  agreement
+  noc
+  correspondence
+  receipt
+  other
+}

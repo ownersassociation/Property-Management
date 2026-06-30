@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Pending | Property Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    .pending-card { border: none; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  </style>
+</head>
+<body class="d-flex align-items-center">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="card pending-card p-5 text-center">
+          <div class="mb-4">
+            <i class="bi bi-hourglass-split text-warning" style="font-size: 4rem;"></i>
+          </div>
+          <h3 class="fw-bold mb-3">Account Pending Approval</h3>
+          <p class="text-muted mb-4">Your account has been registered successfully but is pending approval from the administrator. You will be notified once your account is activated.</p>
+          <div class="d-grid">
+            <a href="/logout" class="btn btn-outline-primary">
+              <i class="bi bi-box-arrow-right me-2"></i>Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

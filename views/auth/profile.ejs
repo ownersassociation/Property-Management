@@ -1,0 +1,86 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold"><i class="bi bi-person-circle me-2 text-primary"></i>My Profile</h2>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="mb-3">
+          <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+            <i class="bi bi-person fs-1"></i>
+          </div>
+        </div>
+        <h4 class="mb-1"><%= user.firstName %> <%= user.lastName %></h4>
+        <p class="text-muted mb-2"><%= user.email %></p>
+        <span class="badge bg-<%= user.role === 'admin' ? 'danger' : user.role === 'accountant' ? 'warning text-dark' : user.role === 'owner' ? 'success' : 'info' %> mb-3">
+          <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+        </span>
+        <div class="small text-muted">
+          <p class="mb-1"><i class="bi bi-calendar me-1"></i>Joined <%= moment(user.createdAt).format('MMMM YYYY') %></p>
+          <% if (user.lastLogin) { %>
+            <p class="mb-0"><i class="bi bi-clock me-1"></i>Last login <%= moment(user.lastLogin).fromNow() %></p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-pencil-square me-2"></i>Edit Profile</h5>
+      </div>
+      <div class="card-body">
+        <form action="/profile" method="POST">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-control" name="firstName" value="<%= user.firstName %>" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-control" name="lastName" value="<%= user.lastName %>" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" value="<%= user.email %>" disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <input type="tel" class="form-control" name="phone" value="<%= user.phone || '' %>">
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-2"></i>Update Profile
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-shield-lock me-2"></i>Change Password</h5>
+      </div>
+      <div class="card-body">
+        <form action="/profile/password" method="POST">
+          <div class="mb-3">
+            <label class="form-label">Current Password</label>
+            <input type="password" class="form-control" name="currentPassword" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control" name="newPassword" minlength="6" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" name="confirmPassword" required>
+          </div>
+          <button type="submit" class="btn btn-warning">
+            <i class="bi bi-key me-2"></i>Change Password
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

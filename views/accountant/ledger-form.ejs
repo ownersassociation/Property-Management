@@ -1,0 +1,98 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">
+    <i class="bi bi-<%= entry ? 'pencil-square' : 'plus-circle' %> me-2 text-primary"></i>
+    <%= entry ? 'Edit' : 'New' %> Ledger Entry
+  </h2>
+  <a href="/expenses" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Back to Expenses
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form action="<%= entry ? '/accountant/ledger/' + entry.id : '/accountant/ledger' %>" method="POST" enctype="multipart/form-data">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" name="date" 
+                value="<%= entry ? moment(entry.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD') %>" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Bill Ref No <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="billRefNo" 
+                value="<%= entry ? entry.billRefNo : '' %>" placeholder="e.g., BR-2026-0001" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="category" list="categoryList"
+                value="<%= entry ? entry.category : '' %>" placeholder="e.g., Maintenance" required>
+              <datalist id="categoryList">
+                <% categories.forEach(cat => { %>
+                  <option value="<%= cat %>">
+                <% }) %>
+              </datalist>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Vendor <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="vendor" 
+                value="<%= entry ? entry.vendor : '' %>" placeholder="Vendor name" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" name="description" rows="3" placeholder="Expense description" required><%= entry ? entry.description : '' %></textarea>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Amount (&#8377;) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" name="amount" step="0.01" min="0"
+                value="<%= entry ? entry.amount : '' %>" placeholder="0.00" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Payment Mode</label>
+              <select class="form-select" name="paymentMode">
+                <option value="Bank Transfer" <%= entry && entry.paymentMode === 'Bank Transfer' ? 'selected' : '' %>>Bank Transfer</option>
+                <option value="Cash" <%= entry && entry.paymentMode === 'Cash' ? 'selected' : '' %>>Cash</option>
+                <option value="Cheque" <%= entry && entry.paymentMode === 'Cheque' ? 'selected' : '' %>>Cheque</option>
+                <option value="UPI" <%= entry && entry.paymentMode === 'UPI' ? 'selected' : '' %>>UPI</option>
+                <option value="Card" <%= entry && entry.paymentMode === 'Card' ? 'selected' : '' %>>Card</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Receipt (Image/PDF)</label>
+            <input type="file" class="form-control" name="receipt" accept="image/*,.pdf">
+            <% if (entry && entry.receiptUrl) { %>
+              <div class="mt-2">
+                <span class="text-muted small">Current receipt:</span>
+                <a href="<%= entry.receiptUrl %>" target="_blank" class="btn btn-sm btn-outline-success ms-2">
+                  <i class="bi bi-file-earmark-text me-1"></i>View Current
+                </a>
+              </div>
+            <% } %>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Notes</label>
+            <textarea class="form-control" name="notes" rows="2" placeholder="Additional notes (optional)"><%= entry ? entry.notes || '' : '' %></textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-check-lg me-2"></i><%= entry ? 'Update' : 'Create' %> Entry
+            </button>
+            <a href="/expenses" class="btn btn-outline-secondary btn-lg">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
