@@ -1,4 +1,31 @@
-# Property-Management Portal
+# Property-Management
+
+## Environment setup
+
+1. Copy [.env.example](.env.example) to .env.
+2. Update the values for your local database, session secret, and Cloudinary credentials.
+3. Restart the app after changing environment variables.
+
+Example:
+
+```bash
+cp .env.example .env
+```
+
+The zip file is ready for download:
+
+**[property-management-portal.zip](sandbox:///mnt/agents/output/property-management-portal.zip)**
+
+📦 **File Details:**
+- **Size:** 61.6 KB (63,073 bytes)
+- **Files:** 46 files
+- **Format:** Standard ZIP archive
+
+**To download to your local computer:**
+1. Click the link above, or
+2. Right-click → "Save Link As..." to save the `.zip` file to your Downloads folder
+3. Extract with any ZIP utility (Windows Explorer, macOS Archive Utility, 7-Zip, etc.)
+
 **Project Structure:**
 ```
 property-management-portal/
