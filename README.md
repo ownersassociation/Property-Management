@@ -1,17 +1,4 @@
-# Property-ManagementThe zip file is ready for download:
-
-**[property-management-portal.zip](sandbox:///mnt/agents/output/property-management-portal.zip)**
-
-📦 **File Details:**
-- **Size:** 61.6 KB (63,073 bytes)
-- **Files:** 46 files
-- **Format:** Standard ZIP archive
-
-**To download to your local computer:**
-1. Click the link above, or
-2. Right-click → "Save Link As..." to save the `.zip` file to your Downloads folder
-3. Extract with any ZIP utility (Windows Explorer, macOS Archive Utility, 7-Zip, etc.)
-
+# Property-Management Portal
 **Project Structure:**
 ```
 property-management-portal/
