@@ -1,0 +1,380 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>Expense Dashboard</h2>
+    <p class="text-muted mb-0">Track and analyze all society expenses</p>
+  </div>
+  <% if (isAccountant || isAdmin) { %>
+    <a href="/accountant/ledger/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-2"></i>New Entry
+    </a>
+  <% } %>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-danger bg-opacity-10 text-danger rounded-3 p-3">
+            <i class="bi bi-currency-rupee fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">Total Expenses</h6>
+            <h4 class="mb-0 fw-bold">&#8377;<%= Math.round(summary.total).toLocaleString('en-IN') %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-3 p-3">
+            <i class="bi bi-receipt fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">Total Entries</h6>
+            <h4 class="mb-0 fw-bold"><%= summary.count %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3 p-3">
+            <i class="bi bi-calculator fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">Average</h6>
+            <h4 class="mb-0 fw-bold">&#8377;<%= Math.round(summary.average).toLocaleString('en-IN') %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-3 p-3">
+            <i class="bi bi-tag fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">Categories</h6>
+            <h4 class="mb-0 fw-bold"><%= Object.keys(summary.categories).length %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-pie-chart me-2 text-primary"></i>Expenses by Category</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="categoryChart" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Trends</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="trendChart" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Mode Breakdown -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-credit-card me-2 text-primary"></i>Payment Mode</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="paymentModeChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-building me-2 text-primary"></i>Top Vendors</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>Vendor</th><th class="text-end">Amount</th><th class="text-end">%</th></tr>
+            </thead>
+            <tbody>
+              <% const vendorEntries = Object.entries(summary.vendors).sort((a,b) => b[1] - a[1]).slice(0, 8); %>
+              <% vendorEntries.forEach(([vendor, amount]) => { %>
+                <% const pct = ((amount / summary.total) * 100).toFixed(1); %>
+                <tr>
+                  <td><%= vendor %></td>
+                  <td class="text-end fw-semibold">&#8377;<%= Math.round(amount).toLocaleString('en-IN') %></td>
+                  <td class="text-end"><span class="badge bg-primary bg-opacity-10 text-primary"><%= pct %>%</span></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white py-3">
+    <h5 class="mb-0 fw-semibold"><i class="bi bi-funnel me-2 text-primary"></i>Filters</h5>
+  </div>
+  <div class="card-body">
+    <form method="GET" class="row g-3">
+      <div class="col-md-2">
+        <label class="form-label">Category</label>
+        <select class="form-select" name="category">
+          <option value="">All Categories</option>
+          <% filters.categories.forEach(cat => { %>
+            <option value="<%= cat %>" <%= filters.selectedCategory === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Vendor</label>
+        <select class="form-select" name="vendor">
+          <option value="">All Vendors</option>
+          <% filters.vendors.forEach(v => { %>
+            <option value="<%= v %>" <%= filters.selectedVendor === v ? 'selected' : '' %>><%= v %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">From Date</label>
+        <input type="date" class="form-control" name="from" value="<%= filters.from || '' %>">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">To Date</label>
+        <input type="date" class="form-control" name="to" value="<%= filters.to || '' %>">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Min Amount</label>
+        <input type="number" class="form-control" name="minAmount" value="<%= filters.minAmount || '' %>" placeholder="Min">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Max Amount</label>
+        <input type="number" class="form-control" name="maxAmount" value="<%= filters.maxAmount || '' %>" placeholder="Max">
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary me-2"><i class="bi bi-funnel me-2"></i>Apply Filters</button>
+        <a href="/expenses" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-2"></i>Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Expense Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <h5 class="mb-0 fw-semibold"><i class="bi bi-table me-2 text-primary"></i>Expense Ledger</h5>
+    <span class="text-muted"><%= totalCount %> entries found</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Bill Ref</th>
+            <th>Category</th>
+            <th>Vendor</th>
+            <th>Description</th>
+            <th class="text-end">Amount</th>
+            <th>Payment</th>
+            <th>Receipt</th>
+            <% if (isAccountant || isAdmin) { %><th>Actions</th><% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (entries && entries.length > 0) { %>
+            <% entries.forEach(entry => { %>
+              <tr>
+                <td><%= moment(entry.date).format('DD MMM YYYY') %></td>
+                <td><span class="font-monospace fw-semibold text-primary"><%= entry.billRefNo %></span></td>
+                <td><span class="badge bg-light text-dark border"><%= entry.category %></span></td>
+                <td><%= entry.vendor %></td>
+                <td class="text-truncate" style="max-width: 200px;" title="<%= entry.description %>"><%= entry.description %></td>
+                <td class="text-end fw-bold">&#8377;<%= Number(entry.amount).toLocaleString('en-IN') %></td>
+                <td><span class="badge bg-light text-dark"><%= entry.paymentMode %></span></td>
+                <td>
+                  <% if (entry.receiptUrl) { %>
+                    <a href="<%= entry.receiptUrl %>" target="_blank" class="btn btn-sm btn-outline-success">
+                      <i class="bi bi-file-earmark-text me-1"></i>View
+                    </a>
+                  <% } else { %>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary">No Receipt</span>
+                  <% } %>
+                </td>
+                <% if (isAccountant || isAdmin) { %>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <a href="/accountant/ledger/<%= entry.id %>/edit" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <form action="/accountant/ledger/<%= entry.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Delete this entry?');">
+                        <button type="submit" class="btn btn-outline-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                <% } %>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="<%= isAccountant || isAdmin ? 9 : 8 %>" class="text-center py-4 text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-2"></i>No expense entries found
+            </td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <% if (totalPages > 1) { %>
+    <div class="card-footer bg-white">
+      <nav>
+        <ul class="pagination justify-content-center mb-0">
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+              <a class="page-link" href="?page=<%= i %><%= filters.selectedCategory ? '&category=' + filters.selectedCategory : '' %><%= filters.selectedVendor ? '&vendor=' + filters.selectedVendor : '' %>"><%= i %></a>
+            </li>
+          <% } %>
+        </ul>
+      </nav>
+    </div>
+  <% } %>
+</div>
+
+<% extraScripts = `
+<script>
+// Category Pie Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryData = ${JSON.stringify(Object.entries(summary.categories).map(([k, v]) => ({ label: k, value: Math.round(v) })))};
+new Chart(categoryCtx, {
+  type: 'doughnut',
+  data: {
+    labels: categoryData.map(d => d.label),
+    datasets: [{
+      data: categoryData.map(d => d.value),
+      backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#fa709a'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const pct = ((context.raw / total) * 100).toFixed(1);
+            return context.label + ': ₹' + context.raw.toLocaleString('en-IN') + ' (' + pct + '%)';
+          }
+        }
+      }
+    }
+  }
+});
+
+// Monthly Trend Line Chart
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const trendData = ${JSON.stringify(trends)};
+new Chart(trendCtx, {
+  type: 'line',
+  data: {
+    labels: trendData.map(d => {
+      const [year, month] = d.month.split('-');
+      return new Date(year, month - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+    }),
+    datasets: [{
+      label: 'Monthly Expenses',
+      data: trendData.map(d => d.amount),
+      borderColor: '#667eea',
+      backgroundColor: 'rgba(102, 126, 234, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: '#667eea'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'K' : value);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Payment Mode Bar Chart
+const pmCtx = document.getElementById('paymentModeChart').getContext('2d');
+const pmData = ${JSON.stringify(Object.entries(summary.paymentModes).map(([k, v]) => ({ label: k, value: Math.round(v) })))};
+new Chart(pmCtx, {
+  type: 'bar',
+  data: {
+    labels: pmData.map(d => d.label),
+    datasets: [{
+      label: 'Amount',
+      data: pmData.map(d => d.value),
+      backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'K' : value);
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+` %>

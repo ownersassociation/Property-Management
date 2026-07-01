@@ -1,0 +1,152 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-0"><i class="bi bi-calculator me-2 text-primary"></i>Accountant Dashboard</h2>
+    <p class="text-muted mb-0">Manage society expenses and financial records</p>
+  </div>
+  <a href="/accountant/ledger/new" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-2"></i>New Ledger Entry
+  </a>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-3 p-3">
+            <i class="bi bi-currency-rupee fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">This Month</h6>
+            <h4 class="mb-0 fw-bold">&#8377;<%= Math.round(stats.monthlyTotal).toLocaleString('en-IN') %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3 p-3">
+            <i class="bi bi-calendar-year fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">This Year</h6>
+            <h4 class="mb-0 fw-bold">&#8377;<%= Math.round(stats.yearlyTotal).toLocaleString('en-IN') %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-info bg-opacity-10 text-info rounded-3 p-3">
+            <i class="bi bi-receipt fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">Total Entries</h6>
+            <h4 class="mb-0 fw-bold"><%= stats.totalEntries %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-3 p-3">
+            <i class="bi bi-upload fs-4"></i>
+          </div>
+          <div class="ms-3">
+            <h6 class="text-muted mb-1">Quick Action</h6>
+            <a href="/accountant/ledger/new" class="btn btn-sm btn-warning">Add Entry</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Category Breakdown -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-pie-chart me-2 text-primary"></i>Category Breakdown</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="acctCategoryChart" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Entries -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Entries</h5>
+        <a href="/expenses" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          <% if (recentEntries && recentEntries.length > 0) { %>
+            <% recentEntries.forEach(entry => { %>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold"><%= entry.billRefNo %></div>
+                  <small class="text-muted"><%= entry.category %> | <%= entry.vendor %></small>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold">&#8377;<%= Number(entry.amount).toLocaleString('en-IN') %></div>
+                  <small class="text-muted"><%= moment(entry.date).format('DD MMM') %></small>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="text-center py-4 text-muted">No recent entries</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% extraScripts = `
+<script>
+const acctCatCtx = document.getElementById('acctCategoryChart').getContext('2d');
+const acctCatData = ${JSON.stringify(categoryBreakdown.map(c => ({ label: c.category, value: Math.round(c.amount) })))};
+new Chart(acctCatCtx, {
+  type: 'doughnut',
+  data: {
+    labels: acctCatData.map(d => d.label),
+    datasets: [{
+      data: acctCatData.map(d => d.value),
+      backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const pct = ((context.raw / total) * 100).toFixed(1);
+            return context.label + ': ₹' + context.raw.toLocaleString('en-IN') + ' (' + pct + '%)';
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+` %>
